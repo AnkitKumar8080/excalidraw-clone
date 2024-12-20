@@ -32,17 +32,10 @@ const Canvas = () => {
 
     const { offsetX, offsetY } = event.nativeEvent;
     const point: Point = { x: offsetX, y: offsetY };
-    console.log(point);
     setCurrentStroke([point]);
 
     // create a new strokeElement in redux state
     createStrokeElement(offsetX, offsetY);
-
-    // console.log(currentStroke);
-    // ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // draw a stroke at the initial point
-    // drawStroke(ctx, [point], strokeSetting);
   };
 
   const handleMouseMove = (
@@ -51,24 +44,16 @@ const Canvas = () => {
     if (!isDrawing) return;
 
     const { offsetX, offsetY } = event.nativeEvent;
+
+    // update the element with new points
+    const lastElementIndex = elements.length - 1;
+    if (lastElementIndex >= 0) {
+      updateStrokeElementPoints(elements[lastElementIndex], [
+        { x: offsetX, y: offsetY },
+      ]);
+    }
+
     setCurrentStroke((prev) => [...prev, { x: offsetX, y: offsetY }]);
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // if (elements.length) {
-    //   elements?.forEach((element) => {
-    //     if (element?.points && element.strokeSetting) {
-    //       drawStroke(ctx, element.points, element.strokeSetting);
-    //     }
-    //   });
-    // }
-
-    // drawStroke(ctx, currentStroke, strokeSetting);
   };
 
   const handleMouseUp = (
@@ -77,14 +62,6 @@ const Canvas = () => {
     if (!isDrawing) return;
 
     setIsDrawing(false);
-    setCurrentStroke([]);
-    const element = elements[elements.length - 1];
-    if (element) {
-      updateStrokeElementPoints(
-        element,
-        currentStroke.slice(1, currentStroke.length)
-      );
-    }
   };
 
   // useEffect to render all the stroke elements stored in the state
@@ -104,9 +81,8 @@ const Canvas = () => {
       }
     });
 
-    // drawStroke(ctx, currentStroke, strokeSetting);
     ctx.restore();
-  }, [elements, currentStroke]);
+  }, [elements]);
 
   return (
     <canvas
