@@ -11,6 +11,18 @@ export type ToolType =
   | "eraser"
   | "text";
 
+export const Tools = {
+  pan: "pan",
+  select: "select",
+  square: "square",
+  rectangle: "rectangle",
+  circle: "circle",
+  line: "line",
+  drawing: "drawing",
+  eraser: "eraser",
+  text: "text",
+};
+
 export type ToolState = {
   selectedTool: ToolType;
 };
@@ -55,8 +67,29 @@ export type StrokeElement = {
   type: ToolType;
   points?: Point[];
   strokeSetting?: StrokeState;
+  position?: string | null;
 };
 
-export type StrokeElementsState = {
+export type CanvasState = {
   elements: StrokeElement[];
+  scale: number;
+  scaleOffset: Point;
+  panOffset: Point;
+  action: ActionType;
+  selectedElement: SelectedElementType | null;
+};
+
+export type ActionType =
+  | "writing"
+  | "drawing"
+  | "moving"
+  | "panning"
+  | "resizing"
+  | "none";
+
+export type SelectedElementType = StrokeElement & {
+  xOffsets?: number[];
+  yOffsets?: number[];
+  offsetX?: number;
+  offsetY?: number;
 };

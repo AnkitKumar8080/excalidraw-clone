@@ -1,4 +1,4 @@
-import { Point, StrokeState } from "@/types";
+import { Point, StrokeElement, StrokeState, Tools, ToolType } from "@/types";
 import getStroke, { StrokeOptions } from "perfect-freehand";
 
 export const drawStroke = (
@@ -75,4 +75,69 @@ const getSvgPathFromStroke = (stroke: [number, number][]) => {
 
   d.push("Z");
   return d.join(" ");
+};
+
+// function to get an element a position
+export const getElementAtPosition = (
+  x: number,
+  y: number,
+  elements: StrokeElement[]
+) => {
+  return elements
+    .map((element) => ({
+      ...element,
+      position: positionWithinElement(x, y, element),
+    }))
+    .find((element) => element.position !== null);
+};
+
+//function to check if the point lies inside or outside the points
+const positionWithinElement = (
+  x: number,
+  y: number,
+  element: StrokeElement
+) => {
+  const { type } = element;
+  switch (type) {
+    case "drawing": {
+      const betweenPoints = element.points!.some((currentPoint, index) => {
+        const nextPoint = element.points![index + 1];
+        if (!nextPoint) return false;
+
+        return onLine(
+          currentPoint.x,
+          currentPoint.y,
+          nextPoint.x,
+          nextPoint.y,
+          x,
+          y,
+          5
+        );
+      });
+      // console.log(betweenPoints);
+      return betweenPoints ? "inside" : null;
+    }
+  }
+};
+
+// function to check if the point is inside the line
+const onLine = (
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  x: number,
+  y: number,
+  maxDistance: number = 5
+): string | null => {
+  const a: Point = { x: x1, y: y1 };
+  const b: Point = { x: x2, y: y2 };
+  const c: Point = { x, y };
+  const offset = distance(a, b) - (distance(a, c) + distance(b, c));
+  return Math.abs(offset) < maxDistance ? "inside" : null;
+};
+
+// function to calculate the euclidian's distance
+const distance = (a: Point, b: Point) => {
+  return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
 };

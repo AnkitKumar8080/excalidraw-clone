@@ -14,7 +14,6 @@ type ToolbarBtnProps = {
 
 const ToolbarBtn = ({ icon, cursorStyle, tool, active }: ToolbarBtnProps) => {
   const dispatch = useAppDispatch();
-  console.log(active);
   return (
     <button
       className={`p-2 hover:cursor-pointer rounded-md ${

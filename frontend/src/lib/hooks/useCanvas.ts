@@ -7,6 +7,7 @@ const useCanvas = () => {
   const dispatch = useAppDispatch();
   const { selectedTool } = useAppSelector((state) => state.tool);
   const strokeSetting = useAppSelector((state) => state.strokeSetting);
+  const { elements } = useAppSelector((state) => state.canvas);
 
   const createStrokeElement = (
     x1: number,
@@ -14,8 +15,11 @@ const useCanvas = () => {
     x2?: number,
     y2?: number
   ): StrokeElement => {
+    // generate a id which will be index of the element in the elements array
+    const id = elements.length;
+
     const strokeElement = {
-      id: Date.now(),
+      id: id,
       x1,
       y1,
       x2: 0,

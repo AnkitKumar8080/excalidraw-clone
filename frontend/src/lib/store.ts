@@ -8,7 +8,7 @@ export const makeStore = () => {
     reducer: {
       tool: toolReducer,
       strokeSetting: strokeSettingSlice,
-      strokeElements: strokeElementsSlice,
+      canvas: strokeElementsSlice,
     },
   });
 };

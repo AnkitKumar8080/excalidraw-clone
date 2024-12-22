@@ -1,59 +1,120 @@
 "use client";
 
-import { useAppSelector } from "@/lib/hooks/reduxHooks";
-import { drawStroke } from "@/lib/utils";
-import { Point } from "@/types";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks/reduxHooks";
+import { drawStroke, getElementAtPosition } from "@/lib/utils";
+import { Point, SelectedElementType } from "@/types";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import useCanvas from "@/lib/hooks/useCanvas";
+import {
+  replaceStrokeElementPoints,
+  setSelectedElement,
+} from "@/lib/features/canvasSlice";
 
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [currentStroke, setCurrentStroke] = useState<Point[]>([]);
+  // state to manually trigger rerendering of canvas
+  const [date, setDate] = useState<number>(Date.now());
 
-  const { elements } = useAppSelector((state) => state.strokeElements);
-  const strokeSetting = useAppSelector((state) => state.strokeSetting);
+  const { elements, panOffset, scale, scaleOffset, action, selectedElement } =
+    useAppSelector((state) => state.canvas);
+  const { selectedTool } = useAppSelector((state) => state.tool);
 
   const { createStrokeElement, updateStrokeElementPoints } = useCanvas();
+
+  const dispatch = useAppDispatch();
+
+  const getMouseCoordinates = (
+    event: React.MouseEvent<HTMLCanvasElement, MouseEvent>
+  ): Point => {
+    const x = (event.clientX - panOffset.x * scale + scaleOffset.x) / scale;
+    const y = (event.clientY - panOffset.y * scale + scaleOffset.y) / scale;
+
+    return { x, y };
+  };
 
   const handleMouseDown = (
     event: React.MouseEvent<HTMLCanvasElement, MouseEvent>
   ) => {
+    // if (action === "writing") return;
     setIsDrawing(true);
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const { x, y } = getMouseCoordinates(event);
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (selectedTool === "select") {
+      // get the selected element if clicked on it
+      const foundElement = getElementAtPosition(x, y, elements);
 
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+      if (foundElement) {
+        let selectedStrokeElement: SelectedElementType = {
+          ...foundElement,
+        };
 
-    const { offsetX, offsetY } = event.nativeEvent;
-    const point: Point = { x: offsetX, y: offsetY };
-    setCurrentStroke([point]);
+        if (foundElement?.type === "drawing" && foundElement.points) {
+          const xOffsets = foundElement.points.map((point) => x - point.x);
+          const yOffsets = foundElement.points.map((point) => y - point.y);
 
-    // create a new strokeElement in redux state
-    createStrokeElement(offsetX, offsetY);
+          selectedStrokeElement = {
+            ...selectedStrokeElement,
+            xOffsets,
+            yOffsets,
+          };
+        } else {
+          const offsetX = x - selectedStrokeElement.x1;
+          const offsetY = y - selectedStrokeElement.y1;
+          selectedStrokeElement = {
+            ...selectedStrokeElement,
+            offsetX,
+            offsetY,
+          };
+        }
+        dispatch(setSelectedElement(selectedStrokeElement));
+      }
+    } else {
+      // create a new strokeElement in redux state
+      createStrokeElement(x, y);
+      setDate(Date.now());
+    }
   };
 
   const handleMouseMove = (
     event: React.MouseEvent<HTMLCanvasElement, MouseEvent>
   ) => {
     if (!isDrawing) return;
-
-    const { offsetX, offsetY } = event.nativeEvent;
-
-    // update the element with new points
-    const lastElementIndex = elements.length - 1;
-    if (lastElementIndex >= 0) {
-      updateStrokeElementPoints(elements[lastElementIndex], [
-        { x: offsetX, y: offsetY },
-      ]);
+    if (selectedTool === "pan") {
+      return;
     }
 
-    setCurrentStroke((prev) => [...prev, { x: offsetX, y: offsetY }]);
+    const { x, y } = getMouseCoordinates(event);
+
+    if (selectedTool === "drawing") {
+      // update the element with new points
+      const lastElementIndex = elements.length - 1;
+      if (lastElementIndex >= 0) {
+        updateStrokeElementPoints(elements[lastElementIndex], [{ x, y }]);
+      }
+    }
+
+    if (selectedTool === "select") {
+      // update the position of the points with the new offset values
+
+      if (
+        selectedElement?.type === "drawing" &&
+        "points" in selectedElement &&
+        "xOffsets" in selectedElement &&
+        "yOffsets" in selectedElement
+      ) {
+        const newPoints = selectedElement.points?.map((_, index) => ({
+          x: x - selectedElement.xOffsets![index],
+          y: y - selectedElement.yOffsets![index],
+        }));
+
+        if (newPoints?.length)
+          dispatch(
+            replaceStrokeElementPoints({ id: selectedElement.id, newPoints })
+          );
+      }
+    }
   };
 
   const handleMouseUp = (
@@ -69,6 +130,9 @@ const Canvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -80,9 +144,15 @@ const Canvas = () => {
         return drawStroke(ctx, element.points, element.strokeSetting);
       }
     });
+  }, [elements, date]);
 
-    ctx.restore();
-  }, [elements]);
+  // useLayoutEffect(() => {
+  //   const canvas = canvasRef.current;
+  //   if (!canvas) return;
+
+  //   canvas.width = window.innerWidth;
+  //   canvas.height = window.innerHeight;
+  // }, []);
 
   return (
     <canvas
