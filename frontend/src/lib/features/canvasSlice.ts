@@ -57,6 +57,17 @@ export const strokeElementsSlice = createSlice({
       }
     },
 
+    // remove a strke element by id
+    removeStrokeElementById: (state, action: PayloadAction<number>) => {
+      const id = action.payload;
+
+      const index = state.elements.findIndex((element) => element.id === id);
+
+      if (index >= 0) {
+        state.elements.splice(index, 1);
+      }
+    },
+
     // update the scale
     setScale: (state, action: PayloadAction<number>) => {
       state.scale = action.payload;
@@ -78,7 +89,10 @@ export const strokeElementsSlice = createSlice({
     },
 
     // set the selected element
-    setSelectedElement: (state, action: PayloadAction<SelectedElementType>) => {
+    setSelectedElement: (
+      state,
+      action: PayloadAction<SelectedElementType | null>
+    ) => {
       state.selectedElement = action.payload;
     },
   },
@@ -92,5 +106,6 @@ export const {
   setPanOffset,
   setScale,
   replaceStrokeElementPoints,
+  removeStrokeElementById,
 } = strokeElementsSlice.actions;
 export default strokeElementsSlice.reducer;

@@ -6,6 +6,7 @@ import { Point, SelectedElementType } from "@/types";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import useCanvas from "@/lib/hooks/useCanvas";
 import {
+  removeStrokeElementById,
   replaceStrokeElementPoints,
   setSelectedElement,
 } from "@/lib/features/canvasSlice";
@@ -70,10 +71,17 @@ const Canvas = () => {
         }
         dispatch(setSelectedElement(selectedStrokeElement));
       }
+    }
+    if (selectedTool === "eraser") {
+      const foundElement = getElementAtPosition(x, y, elements);
+
+      if (foundElement) {
+        dispatch(removeStrokeElementById(foundElement.id));
+      }
     } else {
       // create a new strokeElement in redux state
       createStrokeElement(x, y);
-      setDate(Date.now());
+      // setDate(Date.now());
     }
   };
 
@@ -123,6 +131,7 @@ const Canvas = () => {
     if (!isDrawing) return;
 
     setIsDrawing(false);
+    dispatch(setSelectedElement(null));
   };
 
   // useEffect to render all the stroke elements stored in the state

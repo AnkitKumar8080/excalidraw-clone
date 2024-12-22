@@ -83,12 +83,24 @@ export const getElementAtPosition = (
   y: number,
   elements: StrokeElement[]
 ) => {
-  return elements
-    .map((element) => ({
-      ...element,
-      position: positionWithinElement(x, y, element),
-    }))
-    .find((element) => element.position !== null);
+  // return elements
+  //   .map((element) => ({
+  //     ...element,
+  //     position: positionWithinElement(x, y, element),
+  //   }))
+  //   .find((element) => element.position !== null);
+
+  for (let i = elements.length - 1; i >= 0; i--) {
+    const element = elements[i];
+    const position = positionWithinElement(x, y, element);
+    if (position !== null) {
+      return {
+        ...element,
+        position,
+      };
+    }
+  }
+  return null;
 };
 
 //function to check if the point lies inside or outside the points
