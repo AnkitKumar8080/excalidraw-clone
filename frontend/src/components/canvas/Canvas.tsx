@@ -1,7 +1,12 @@
 "use client";
 
 import { useAppDispatch, useAppSelector } from "@/lib/hooks/reduxHooks";
-import { drawStroke, getElementAtPosition } from "@/lib/utils";
+import {
+  drawLine,
+  drawSquareOrRectangle,
+  drawStroke,
+  getElementAtPosition,
+} from "@/lib/utils";
 import { Point, SelectedElementType } from "@/types";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import useCanvas from "@/lib/hooks/useCanvas";
@@ -10,6 +15,7 @@ import {
   replaceStrokeElementPoints,
   setSelectedElement,
 } from "@/lib/features/canvasSlice";
+import StrokeSettings from "../strokeSettings/StrokeSettings";
 
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,7 +27,11 @@ const Canvas = () => {
     useAppSelector((state) => state.canvas);
   const { selectedTool } = useAppSelector((state) => state.tool);
 
-  const { createStrokeElement, updateStrokeElementPoints } = useCanvas();
+  const {
+    createStrokeElement,
+    updateStrokeElementPoints,
+    updateStrokeElementForShape,
+  } = useCanvas();
 
   const dispatch = useAppDispatch();
 
@@ -95,11 +105,33 @@ const Canvas = () => {
 
     const { x, y } = getMouseCoordinates(event);
 
+    if (selectedTool === "line") {
+      const lastElementIndex = elements.length - 1;
+      if (lastElementIndex >= 0) {
+        return updateStrokeElementForShape(elements[lastElementIndex], x, y);
+      }
+    }
+
+    if (selectedTool === "rectangle") {
+      const lastElementIndex = elements.length - 1;
+      if (lastElementIndex >= 0) {
+        const width = x - elements[lastElementIndex].x1;
+        const height = y - elements[lastElementIndex].y1;
+        return updateStrokeElementForShape(
+          elements[lastElementIndex],
+          width,
+          height
+        );
+      }
+    }
+
     if (selectedTool === "drawing") {
       // update the element with new points
       const lastElementIndex = elements.length - 1;
       if (lastElementIndex >= 0) {
-        updateStrokeElementPoints(elements[lastElementIndex], [{ x, y }]);
+        return updateStrokeElementPoints(elements[lastElementIndex], [
+          { x, y },
+        ]);
       }
     }
 
@@ -150,7 +182,32 @@ const Canvas = () => {
 
     elements?.forEach((element) => {
       if (element?.points && element.strokeSetting) {
-        return drawStroke(ctx, element.points, element.strokeSetting);
+        if (element.type === "drawing") {
+          return drawStroke(ctx, element.points, element.strokeSetting);
+        }
+      }
+      if (element.strokeSetting && element.type === "line") {
+        if (!canvasRef.current) return;
+        return drawLine(
+          canvasRef.current,
+          element.x1,
+          element.y1,
+          element.x2,
+          element.y2,
+          element.strokeSetting
+        );
+      }
+
+      if (element.strokeSetting && element.type === "rectangle") {
+        if (!canvasRef.current) return;
+        return drawSquareOrRectangle(
+          canvasRef.current,
+          element.x1,
+          element.y1,
+          element.x2,
+          element.y2,
+          element.strokeSetting
+        );
       }
     });
   }, [elements, date]);

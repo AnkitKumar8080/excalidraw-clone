@@ -1,17 +1,18 @@
 import { Point, StrokeElement, StrokeState, Tools, ToolType } from "@/types";
 import getStroke, { StrokeOptions } from "perfect-freehand";
+import rough from "roughjs";
+
+const widthMap = {
+  thin: 8,
+  bold: 15,
+  extrabold: 20,
+};
 
 export const drawStroke = (
   ctx: CanvasRenderingContext2D,
-  points: Point[],
+  points: Point[] = [],
   strokeSetting: StrokeState
 ): void => {
-  const widthMap = {
-    thin: 8,
-    bold: 15,
-    extrabold: 20,
-  };
-
   const strokeOption: StrokeOptions = {
     size: widthMap[strokeSetting.strokeWidth],
     // smoothing: 0.1,
@@ -49,6 +50,55 @@ export const drawStroke = (
   const stroke = getSvgPathFromStroke(formattedPoints);
   ctx.fillStyle = strokeSetting.strokeColor;
   ctx.fill(new Path2D(stroke));
+};
+
+// draw shapes
+
+// draw line
+export const drawLine = (
+  canvas: HTMLCanvasElement,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  strokeSetting: StrokeState
+) => {
+  const roughCanvas = rough.canvas(canvas);
+
+  if (!roughCanvas) return;
+
+  return roughCanvas.line(x1, y1, x2, y2, {
+    strokeWidth: widthMap[strokeSetting.strokeWidth] / 3,
+    roughness: 0,
+    preserveVertices: false,
+    maxRandomnessOffset: 0,
+    stroke: strokeSetting.strokeColor,
+    disableMultiStroke: true,
+    // smoothing the edges
+  });
+};
+
+// draw a square or rectangle
+export const drawSquareOrRectangle = (
+  canvas: HTMLCanvasElement,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  strokeSetting: StrokeState
+) => {
+  const roughCanvas = rough.canvas(canvas);
+
+  if (!roughCanvas) return;
+
+  return roughCanvas.rectangle(x1, y1, x2, y2, {
+    strokeWidth: widthMap[strokeSetting.strokeWidth] / 3,
+    roughness: 0,
+    preserveVertices: false,
+    maxRandomnessOffset: 0,
+    stroke: strokeSetting.strokeColor,
+    disableMultiStroke: true,
+  });
 };
 
 const getSvgPathFromStroke = (stroke: [number, number][]) => {
@@ -129,6 +179,11 @@ const positionWithinElement = (
       // console.log(betweenPoints);
       return betweenPoints ? "inside" : null;
     }
+    case "line": {
+      return onLine(element.x1, element.y1, element.x2, element.y2, x, y);
+    }
+    default:
+      return null;
   }
 };
 

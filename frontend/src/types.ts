@@ -3,7 +3,6 @@ import { ReactNode } from "react";
 export type ToolType =
   | "pan"
   | "select"
-  | "square"
   | "rectangle"
   | "circle"
   | "line"
@@ -15,7 +14,6 @@ export const Tools = {
   pan: "pan",
   select: "select",
   square: "square",
-  rectangle: "rectangle",
   circle: "circle",
   line: "line",
   drawing: "drawing",

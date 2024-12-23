@@ -30,13 +30,8 @@ const Toolbar = () => {
       cursorStyle: "default",
     },
     {
-      tool: "square",
-      icon: <FaRegSquare className={iconBtnStyle} />,
-      cursorStyle: "crosshair",
-    },
-    {
       tool: "rectangle",
-      icon: <LuRectangleHorizontal className={iconBtnStyle} />,
+      icon: <FaRegSquare className={iconBtnStyle} />,
       cursorStyle: "crosshair",
     },
     {
