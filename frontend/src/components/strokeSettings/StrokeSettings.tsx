@@ -116,7 +116,7 @@ const StrokeSettings = () => {
         <h2 className="text-gray-700 text-sm font-medium mb-0.5">
           Stroke style
         </h2>
-        <StrokeStylePicker styles={strokeStyles} selectedStyle={strokeStyle} />
+        <StrokeStylePicker styles={strokeStyles} selectedStyle={strokeStyle!} />
       </div>
     </div>
   );

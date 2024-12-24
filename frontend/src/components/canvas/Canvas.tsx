@@ -2,6 +2,7 @@
 
 import { useAppDispatch, useAppSelector } from "@/lib/hooks/reduxHooks";
 import {
+  drawCircle,
   drawLine,
   drawSquareOrRectangle,
   drawStroke,
@@ -125,6 +126,22 @@ const Canvas = () => {
       }
     }
 
+    if (selectedTool === "circle") {
+      const lastElementIndex = elements.length - 1;
+      if (lastElementIndex >= 0) {
+        const startX = elements[lastElementIndex].x1;
+        const startY = elements[lastElementIndex].y1;
+
+        // calculate teh radius using the distance formuala
+        const radius = Math.sqrt((x - startX) ** 2 + (y - startY) ** 2);
+        return updateStrokeElementForShape(
+          elements[lastElementIndex],
+          radius,
+          radius
+        );
+      }
+    }
+
     if (selectedTool === "drawing") {
       // update the element with new points
       const lastElementIndex = elements.length - 1;
@@ -137,7 +154,6 @@ const Canvas = () => {
 
     if (selectedTool === "select") {
       // update the position of the points with the new offset values
-
       if (
         selectedElement?.type === "drawing" &&
         "points" in selectedElement &&
@@ -206,6 +222,17 @@ const Canvas = () => {
           element.y1,
           element.x2,
           element.y2,
+          element.strokeSetting
+        );
+      }
+
+      if (element.strokeSetting && element.type === "circle") {
+        if (!canvasRef.current) return;
+        return drawCircle(
+          canvasRef.current,
+          element.x1,
+          element.y1,
+          element.x2,
           element.strokeSetting
         );
       }

@@ -1,6 +1,7 @@
 import { Point, StrokeElement, StrokeState, Tools, ToolType } from "@/types";
 import getStroke, { StrokeOptions } from "perfect-freehand";
 import rough from "roughjs";
+import { Options } from "roughjs/bin/core";
 
 const widthMap = {
   thin: 8,
@@ -91,13 +92,42 @@ export const drawSquareOrRectangle = (
 
   if (!roughCanvas) return;
 
-  return roughCanvas.rectangle(x1, y1, x2, y2, {
+  const options: Options = {
     strokeWidth: widthMap[strokeSetting.strokeWidth] / 3,
     roughness: 0,
-    preserveVertices: false,
+    preserveVertices: true,
     maxRandomnessOffset: 0,
     stroke: strokeSetting.strokeColor,
     disableMultiStroke: true,
+    hachureAngle: 60, // angle of hachure,
+    hachureGap: 8,
+  };
+
+  if (strokeSetting.strokeBackground !== "#ebebeb") {
+    options.fill = strokeSetting.strokeBackground;
+    options.fillStyle = "zigzag";
+  }
+
+  return roughCanvas.rectangle(x1, y1, x2, y2, options);
+};
+
+// draw circle
+export const drawCircle = (
+  canvas: HTMLCanvasElement,
+  x: number,
+  y: number,
+  radius: number,
+  strokeSetting: StrokeState
+) => {
+  const roughCanvas = rough.canvas(canvas);
+
+  if (!roughCanvas) return;
+
+  return roughCanvas.circle(x, y, radius, {
+    strokeWidth: widthMap[strokeSetting.strokeWidth] / 3,
+    roughness: 0,
+    stroke: strokeSetting.strokeColor,
+    fill: strokeSetting.strokeBackground,
   });
 };
 
