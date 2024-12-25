@@ -131,6 +131,22 @@ export const drawCircle = (
   });
 };
 
+export const drawText = (
+  canvas: HTMLCanvasElement,
+  x: number,
+  y: number,
+  textvalue: string,
+  strokeSetting: StrokeState
+) => {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    return;
+  }
+  ctx.font = "16px Arial";
+  ctx.fillStyle = strokeSetting.strokeColor;
+  ctx.fillText(textvalue, x, y);
+};
+
 const getSvgPathFromStroke = (stroke: [number, number][]) => {
   if (!stroke.length) return "";
 

@@ -6,32 +6,37 @@ import {
   drawLine,
   drawSquareOrRectangle,
   drawStroke,
+  drawText,
   getElementAtPosition,
 } from "@/lib/utils";
 import { Point, SelectedElementType } from "@/types";
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useCanvas from "@/lib/hooks/useCanvas";
 import {
   removeStrokeElementById,
   replaceStrokeElementPoints,
   setSelectedElement,
 } from "@/lib/features/canvasSlice";
-import StrokeSettings from "../strokeSettings/StrokeSettings";
 
 const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   // state to manually trigger rerendering of canvas
   const [date, setDate] = useState<number>(Date.now());
-
+  const [showInput, setShowInput] = useState<boolean>(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [inputPosition, setInputPosition] = useState<Point>({ x: 0, y: 0 });
+  const [inputText, setInputText] = useState<string>("");
   const { elements, panOffset, scale, scaleOffset, action, selectedElement } =
     useAppSelector((state) => state.canvas);
   const { selectedTool } = useAppSelector((state) => state.tool);
+  const strokeSetting = useAppSelector((state) => state.strokeSetting);
 
   const {
     createStrokeElement,
     updateStrokeElementPoints,
     updateStrokeElementForShape,
+    updateStrokeElementForText,
   } = useCanvas();
 
   const dispatch = useAppDispatch();
@@ -51,6 +56,9 @@ const Canvas = () => {
     // if (action === "writing") return;
     setIsDrawing(true);
 
+    if (showInput) {
+      return;
+    }
     const { x, y } = getMouseCoordinates(event);
 
     if (selectedTool === "select") {
@@ -89,10 +97,19 @@ const Canvas = () => {
       if (foundElement) {
         dispatch(removeStrokeElementById(foundElement.id));
       }
+    }
+
+    if (selectedTool === "text") {
+      setInputPosition({ x, y });
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+      setShowInput(true);
+      // create a new stroke element
+      createStrokeElement(x, y);
     } else {
       // create a new strokeElement in redux state
       createStrokeElement(x, y);
-      // setDate(Date.now());
     }
   };
 
@@ -182,6 +199,21 @@ const Canvas = () => {
     dispatch(setSelectedElement(null));
   };
 
+  const handleInputBlur = () => {
+    setIsDrawing(false);
+    setShowInput(false);
+
+    const lastElementIndex = elements.length - 1;
+    if (lastElementIndex >= 0) {
+      if (!inputText) {
+        return dispatch(removeStrokeElementById(elements[lastElementIndex].id));
+      }
+      updateStrokeElementForText(elements[lastElementIndex], inputText);
+    }
+
+    setInputText("");
+  };
+
   // useEffect to render all the stroke elements stored in the state
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -236,6 +268,21 @@ const Canvas = () => {
           element.strokeSetting
         );
       }
+
+      if (
+        element.type === "text" &&
+        element.strokeSetting &&
+        element.textValue
+      ) {
+        if (!canvasRef.current) return;
+        return drawText(
+          canvasRef.current,
+          element.x1,
+          element.y1,
+          element.textValue,
+          element.strokeSetting
+        );
+      }
     });
   }, [elements, date]);
 
@@ -248,15 +295,32 @@ const Canvas = () => {
   // }, []);
 
   return (
-    <canvas
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      width={window.innerWidth}
-      height={window.innerHeight}
-      className="bg-white"
-      ref={canvasRef}
-    />
+    <div>
+      <canvas
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        width={window.innerWidth}
+        height={window.innerHeight}
+        className="bg-white"
+        ref={canvasRef}
+      />
+
+      {showInput && (
+        <input
+          ref={inputRef}
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          className="fixed font-medium outline-none bg-transparent text-gray-950 border-gray-200 border-2"
+          style={{
+            left: `${inputPosition.x}px`,
+            top: `${inputPosition.y}px`,
+            color: `${strokeSetting.strokeColor}`,
+          }}
+          onBlur={handleInputBlur}
+        />
+      )}
+    </div>
   );
 };
 export default Canvas;

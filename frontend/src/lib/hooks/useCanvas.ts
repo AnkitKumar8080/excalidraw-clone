@@ -87,10 +87,28 @@ const useCanvas = () => {
       })
     );
   };
+
+  // function for updating the text element
+  const updateStrokeElementForText = (
+    strokeElement: StrokeElement,
+    textValue: string
+  ) => {
+    const updatedStrokeElement: StrokeElement = {
+      ...strokeElement,
+      textValue,
+    };
+    dispatch(
+      updateStrokeElement({
+        id: strokeElement.id,
+        updatedElement: updatedStrokeElement,
+      })
+    );
+  };
   return {
     createStrokeElement,
     updateStrokeElementPoints,
     updateStrokeElementForShape,
+    updateStrokeElementForText,
   };
 };
 

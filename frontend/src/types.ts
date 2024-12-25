@@ -66,6 +66,7 @@ export type StrokeElement = {
   points?: Point[];
   strokeSetting?: StrokeState;
   position?: string | null;
+  textValue?: string;
 };
 
 export type CanvasState = {
