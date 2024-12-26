@@ -91,4 +91,8 @@ export type SelectedElementType = StrokeElement & {
   yOffsets?: number[];
   offsetX?: number;
   offsetY?: number;
+  offsetX1?: number;
+  offsetY1?: number;
+  offsetX2?: number;
+  offsetY2?: number;
 };

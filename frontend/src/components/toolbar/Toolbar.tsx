@@ -19,11 +19,11 @@ const Toolbar = () => {
   const iconBtnStyle = "h-4 w-4";
   const { selectedTool } = useAppSelector((state) => state.tool);
   const toolbarBtns = [
-    {
-      tool: "pan",
-      icon: <IoHandRightOutline className={iconBtnStyle} />,
-      cursorStyle: "grab",
-    },
+    // {
+    //   tool: "pan",
+    //   icon: <IoHandRightOutline className={iconBtnStyle} />,
+    //   cursorStyle: "grab",
+    // },
     {
       tool: "select",
       icon: <RxCursorArrow className={iconBtnStyle} />,

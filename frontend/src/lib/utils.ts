@@ -101,6 +101,7 @@ export const drawSquareOrRectangle = (
     disableMultiStroke: true,
     hachureAngle: 60, // angle of hachure,
     hachureGap: 8,
+    fill: strokeSetting.strokeBackground,
   };
 
   if (strokeSetting.strokeBackground !== "#ebebeb") {
@@ -228,6 +229,55 @@ const positionWithinElement = (
     case "line": {
       return onLine(element.x1, element.y1, element.x2, element.y2, x, y);
     }
+
+    case "rectangle": {
+      const topLeft = nearPoint(x, y, element.x1, element.y1, "topLeft");
+      const topRight = nearPoint(
+        x,
+        y,
+        element.x2 + element.x1,
+        element.y1,
+        "topRight"
+      );
+      const bottomLeft = nearPoint(
+        x,
+        y,
+        element.x1,
+        element.y2 + element.y1,
+        "bottomLeft"
+      );
+      const bottomRight = nearPoint(
+        x,
+        y,
+        element.x2 + element.x1,
+        element.y2 + element.y1,
+        "bottomRight"
+      );
+
+      const inside =
+        x >= element.x1 &&
+        x <= element.x2 + element.x1 &&
+        y >= element.y1 &&
+        y <= element.y2 + element.y1
+          ? "inside"
+          : null;
+
+      return topLeft || topRight || bottomLeft || bottomRight || inside;
+    }
+
+    case "circle": {
+      const dist = distance({ x, y }, { x: element.x1, y: element.y1 });
+      const margin = 1;
+      const radius = element.x2 / 2;
+
+      if (Math.abs(dist - radius) < margin) {
+        return "inside";
+      } else if (dist < radius) {
+        return "inside";
+      } else {
+        return null;
+      }
+    }
     default:
       return null;
   }
@@ -253,4 +303,14 @@ const onLine = (
 // function to calculate the euclidian's distance
 const distance = (a: Point, b: Point) => {
   return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+};
+
+export const nearPoint = (
+  x: number,
+  y: number,
+  x1: number,
+  y1: number,
+  name: string
+): string | null => {
+  return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
 };

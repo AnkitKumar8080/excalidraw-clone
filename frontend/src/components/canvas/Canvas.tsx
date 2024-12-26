@@ -9,13 +9,19 @@ import {
   drawText,
   getElementAtPosition,
 } from "@/lib/utils";
-import { Point, SelectedElementType } from "@/types";
+import {
+  Point,
+  SelectedElementType,
+  StrokeElement,
+  StrokeState,
+} from "@/types";
 import React, { useEffect, useRef, useState } from "react";
 import useCanvas from "@/lib/hooks/useCanvas";
 import {
   removeStrokeElementById,
   replaceStrokeElementPoints,
   setSelectedElement,
+  updateStrokeElement,
 } from "@/lib/features/canvasSlice";
 
 const Canvas = () => {
@@ -65,6 +71,7 @@ const Canvas = () => {
       // get the selected element if clicked on it
       const foundElement = getElementAtPosition(x, y, elements);
 
+      console.log(foundElement?.type);
       if (foundElement) {
         let selectedStrokeElement: SelectedElementType = {
           ...foundElement,
@@ -78,6 +85,20 @@ const Canvas = () => {
             ...selectedStrokeElement,
             xOffsets,
             yOffsets,
+          };
+        }
+        if (foundElement?.type === "line") {
+          const offsetX1 = x - foundElement.x1;
+          const offsetY1 = y - foundElement.y1;
+          const offsetX2 = x - foundElement.x2;
+          const offsetY2 = y - foundElement.y2;
+
+          selectedStrokeElement = {
+            ...selectedStrokeElement,
+            offsetX1,
+            offsetY1,
+            offsetX2,
+            offsetY2,
           };
         } else {
           const offsetX = x - selectedStrokeElement.x1;
@@ -186,6 +207,42 @@ const Canvas = () => {
           dispatch(
             replaceStrokeElementPoints({ id: selectedElement.id, newPoints })
           );
+      }
+
+      if (
+        selectedElement?.type === "rectangle" ||
+        selectedElement?.type === "circle" ||
+        selectedElement?.type === "text"
+      ) {
+        const updatedSelectedElement: StrokeElement = {
+          ...selectedElement,
+          x1: x - selectedElement.offsetX!,
+          y1: y - selectedElement.offsetY!,
+        };
+
+        dispatch(
+          updateStrokeElement({
+            id: selectedElement.id,
+            updatedElement: updatedSelectedElement,
+          })
+        );
+      }
+
+      if (selectedElement?.type === "line") {
+        const updatedSelectedElement: StrokeElement = {
+          ...selectedElement,
+          x1: x - selectedElement.offsetX1!,
+          y1: y - selectedElement.offsetY1!,
+          x2: x - selectedElement.offsetX2!,
+          y2: y - selectedElement.offsetY2!,
+        };
+
+        dispatch(
+          updateStrokeElement({
+            id: selectedElement.id,
+            updatedElement: updatedSelectedElement,
+          })
+        );
       }
     }
   };
