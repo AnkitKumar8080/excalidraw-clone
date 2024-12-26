@@ -71,7 +71,6 @@ const Canvas = () => {
       // get the selected element if clicked on it
       const foundElement = getElementAtPosition(x, y, elements);
 
-      console.log(foundElement?.type);
       if (foundElement) {
         let selectedStrokeElement: SelectedElementType = {
           ...foundElement,

@@ -223,7 +223,6 @@ const positionWithinElement = (
           5
         );
       });
-      // console.log(betweenPoints);
       return betweenPoints ? "inside" : null;
     }
     case "line": {
@@ -277,6 +276,20 @@ const positionWithinElement = (
       } else {
         return null;
       }
+    }
+
+    case "text": {
+      const charWidthFactor = 0.6;
+      const textWidth = element.textValue!.length * 16 * charWidthFactor;
+
+      const textHeight = 16; // its the font size
+
+      return x >= element.x1 &&
+        x <= element.x1 + textWidth &&
+        y >= element.y1 - textHeight && // Above the baseline
+        y <= element.y1 // Below the baseline
+        ? "inside"
+        : null;
     }
     default:
       return null;
