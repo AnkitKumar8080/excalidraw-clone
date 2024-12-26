@@ -1,4 +1,4 @@
-import { Point, StrokeElement, StrokeState, Tools, ToolType } from "@/types";
+import { Point, StrokeElement, StrokeState } from "@/types";
 import getStroke, { StrokeOptions } from "perfect-freehand";
 import rough from "roughjs";
 import { Options } from "roughjs/bin/core";

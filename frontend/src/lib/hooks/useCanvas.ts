@@ -9,12 +9,7 @@ const useCanvas = () => {
   const strokeSetting = useAppSelector((state) => state.strokeSetting);
   const { elements } = useAppSelector((state) => state.canvas);
 
-  const createStrokeElement = (
-    x1: number,
-    y1: number,
-    x2?: number,
-    y2?: number
-  ): StrokeElement => {
+  const createStrokeElement = (x1: number, y1: number): StrokeElement => {
     // generate a id which will be index of the element in the elements array
     const id = elements.length;
 

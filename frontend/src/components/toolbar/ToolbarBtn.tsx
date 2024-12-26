@@ -3,7 +3,7 @@
 import { selectTool } from "@/lib/features/toolsSlice";
 import { useAppDispatch } from "@/lib/hooks/reduxHooks";
 import { CursorStyleType, ToolType } from "@/types";
-import { MouseEvent, ReactNode } from "react";
+import { ReactNode } from "react";
 
 type ToolbarBtnProps = {
   tool: ToolType;
@@ -12,7 +12,7 @@ type ToolbarBtnProps = {
   active: boolean;
 };
 
-const ToolbarBtn = ({ icon, cursorStyle, tool, active }: ToolbarBtnProps) => {
+const ToolbarBtn = ({ icon, tool, active }: ToolbarBtnProps) => {
   const dispatch = useAppDispatch();
   return (
     <button

@@ -9,13 +9,8 @@ import {
   drawText,
   getElementAtPosition,
 } from "@/lib/utils";
-import {
-  Point,
-  SelectedElementType,
-  StrokeElement,
-  StrokeState,
-} from "@/types";
-import React, { useEffect, useRef, useState } from "react";
+import { Point, SelectedElementType, StrokeElement } from "@/types";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import useCanvas from "@/lib/hooks/useCanvas";
 import {
   removeStrokeElementById,
@@ -28,12 +23,11 @@ const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   // state to manually trigger rerendering of canvas
-  const [date, setDate] = useState<number>(Date.now());
   const [showInput, setShowInput] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputPosition, setInputPosition] = useState<Point>({ x: 0, y: 0 });
   const [inputText, setInputText] = useState<string>("");
-  const { elements, panOffset, scale, scaleOffset, action, selectedElement } =
+  const { elements, panOffset, scale, scaleOffset, selectedElement } =
     useAppSelector((state) => state.canvas);
   const { selectedTool } = useAppSelector((state) => state.tool);
   const strokeSetting = useAppSelector((state) => state.strokeSetting);
@@ -246,9 +240,7 @@ const Canvas = () => {
     }
   };
 
-  const handleMouseUp = (
-    event: React.MouseEvent<HTMLCanvasElement, MouseEvent>
-  ) => {
+  const handleMouseUp = () => {
     if (!isDrawing) return;
 
     setIsDrawing(false);
@@ -340,15 +332,15 @@ const Canvas = () => {
         );
       }
     });
-  }, [elements, date]);
+  }, [elements]);
 
-  // useLayoutEffect(() => {
-  //   const canvas = canvasRef.current;
-  //   if (!canvas) return;
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  //   canvas.width = window.innerWidth;
-  //   canvas.height = window.innerHeight;
-  // }, []);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }, []);
 
   return (
     <div>
@@ -356,8 +348,8 @@ const Canvas = () => {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        width={window.innerWidth}
-        height={window.innerHeight}
+        // width={window.innerWidth}
+        // height={window.innerHeight}
         className="bg-white"
         ref={canvasRef}
       />

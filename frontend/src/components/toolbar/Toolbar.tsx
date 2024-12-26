@@ -5,11 +5,9 @@ import ToolbarBtn from "./ToolbarBtn";
 import {
   FaRegCircle,
   FaRegSquare,
-  IoHandRightOutline,
   IoText,
   LuEraser,
   LuPencil,
-  LuRectangleHorizontal,
   RxCursorArrow,
   TfiLayoutLineSolid,
 } from "@/icons";

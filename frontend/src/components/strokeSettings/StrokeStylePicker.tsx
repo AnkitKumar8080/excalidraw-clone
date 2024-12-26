@@ -1,7 +1,7 @@
 "use client";
 import { setStrokeStyle } from "@/lib/features/strokeSlice";
 import { useAppDispatch } from "@/lib/hooks/reduxHooks";
-import { StrokeStyleType, StrokeWidthType } from "@/types";
+import { StrokeStyleType } from "@/types";
 import React, { ReactNode } from "react";
 
 type strokeStylePicker = {
