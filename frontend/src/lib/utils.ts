@@ -9,6 +9,10 @@ const widthMap = {
   extrabold: 20,
 };
 
+const stylesMap = {
+  dashed: [10, 5],
+  dotted: [2, 4],
+};
 export const drawStroke = (
   ctx: CanvasRenderingContext2D,
   points: Point[] = [],
@@ -20,37 +24,37 @@ export const drawStroke = (
     // thinning: 0.5,
   };
 
-  // const stroke = getStroke(points, strokeOption);
+  const stroke = getStroke(points, strokeOption);
 
-  // // adding color of a particular stroke
-  // ctx.fillStyle = strokeSetting.strokeColor;
+  // adding color of a particular stroke
+  ctx.fillStyle = strokeSetting.strokeColor;
 
-  // ctx.beginPath();
+  ctx.beginPath();
 
-  // // start the initial point of the stroke(beginning point)
-  // ctx.moveTo(stroke[0][0], stroke[0][1]);
+  // start the initial point of the stroke(beginning point)
+  ctx.moveTo(stroke[0][0], stroke[0][1]);
 
-  // // draw the complete stroke
-  // for (let i = 1; i < stroke.length; i++) {
-  //   ctx.lineTo(stroke[i][0], stroke[i][1]);
-  // }
+  // draw the complete stroke
+  for (let i = 1; i < stroke.length; i++) {
+    ctx.lineTo(stroke[i][0], stroke[i][1]);
+  }
 
-  // ctx.closePath();
-  // ctx.fill();
+  ctx.closePath();
+  ctx.fill();
 
   // ---------------------------------------------------
-  const strokePoints = getStroke(points, strokeOption);
-  const formattedPoints: [number, number][] = strokePoints.map((point) => {
-    if (point.length !== 2) {
-      throw new Error(
-        `Expected point to have exactly 2 elements, got ${point.length}`
-      );
-    }
-    return [point[0], point[1]];
-  });
-  const stroke = getSvgPathFromStroke(formattedPoints);
-  ctx.fillStyle = strokeSetting.strokeColor;
-  ctx.fill(new Path2D(stroke));
+  // const strokePoints = getStroke(points, strokeOption);
+  // const formattedPoints: [number, number][] = strokePoints.map((point) => {
+  //   if (point.length !== 2) {
+  //     throw new Error(
+  //       `Expected point to have exactly 2 elements, got ${point.length}`
+  //     );
+  //   }
+  //   return [point[0], point[1]];
+  // });
+  // const stroke = getSvgPathFromStroke(formattedPoints);
+  // ctx.fillStyle = strokeSetting.strokeColor;
+  // ctx.fill(new Path2D(stroke));
 };
 
 // draw shapes
@@ -67,16 +71,25 @@ export const drawLine = (
   const roughCanvas = rough.canvas(canvas);
 
   if (!roughCanvas) return;
-
-  return roughCanvas.line(x1, y1, x2, y2, {
+  const options: Options = {
     strokeWidth: widthMap[strokeSetting.strokeWidth] / 3,
     roughness: 0,
-    preserveVertices: false,
+    preserveVertices: true,
     maxRandomnessOffset: 0,
     stroke: strokeSetting.strokeColor,
     disableMultiStroke: true,
-    // smoothing the edges
-  });
+    hachureAngle: 60, // angle of hachure,
+    hachureGap: 8,
+    fill: strokeSetting.strokeBackground,
+  };
+  if (
+    strokeSetting.strokeStyle === "dashed" ||
+    strokeSetting.strokeStyle === "dotted"
+  ) {
+    options.strokeLineDash = stylesMap[strokeSetting.strokeStyle];
+  }
+
+  return roughCanvas.line(x1, y1, x2, y2, options);
 };
 
 // draw a square or rectangle
@@ -109,6 +122,13 @@ export const drawSquareOrRectangle = (
     options.fillStyle = "zigzag";
   }
 
+  if (
+    strokeSetting.strokeStyle === "dashed" ||
+    strokeSetting.strokeStyle === "dotted"
+  ) {
+    options.strokeLineDash = stylesMap[strokeSetting.strokeStyle];
+  }
+
   return roughCanvas.rectangle(x1, y1, x2, y2, options);
 };
 
@@ -124,12 +144,26 @@ export const drawCircle = (
 
   if (!roughCanvas) return;
 
-  return roughCanvas.circle(x, y, radius, {
+  const options: Options = {
     strokeWidth: widthMap[strokeSetting.strokeWidth] / 3,
     roughness: 0,
+    preserveVertices: true,
+    maxRandomnessOffset: 0,
     stroke: strokeSetting.strokeColor,
+    disableMultiStroke: true,
+    hachureAngle: 60, // angle of hachure,
+    hachureGap: 8,
     fill: strokeSetting.strokeBackground,
-  });
+  };
+
+  if (
+    strokeSetting.strokeStyle === "dashed" ||
+    strokeSetting.strokeStyle === "dotted"
+  ) {
+    options.strokeLineDash = stylesMap[strokeSetting.strokeStyle];
+  }
+
+  return roughCanvas.circle(x, y, radius, options);
 };
 
 export const drawText = (
@@ -253,13 +287,13 @@ const positionWithinElement = (
         "bottomRight"
       );
 
+      const xStart = Math.min(element.x1, element.x1 + element.x2);
+      const xEnd = Math.max(element.x1, element.x1 + element.x2);
+      const yStart = Math.min(element.y1, element.y1 + element.y2);
+      const yEnd = Math.max(element.y1, element.y1 + element.y2);
+
       const inside =
-        x >= element.x1 &&
-        x <= element.x2 + element.x1 &&
-        y >= element.y1 &&
-        y <= element.y2 + element.y1
-          ? "inside"
-          : null;
+        x >= xStart && x <= xEnd && y >= yStart && y <= yEnd ? "inside" : null;
 
       return topLeft || topRight || bottomLeft || bottomRight || inside;
     }

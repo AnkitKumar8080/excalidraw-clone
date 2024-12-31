@@ -107,7 +107,7 @@ const Canvas = () => {
     }
     if (selectedTool === "eraser") {
       const foundElement = getElementAtPosition(x, y, elements);
-
+      console.log(selectedElement);
       if (foundElement) {
         dispatch(removeStrokeElementById(foundElement.id));
       }
