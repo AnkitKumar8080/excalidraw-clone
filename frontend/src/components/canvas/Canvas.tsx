@@ -262,6 +262,15 @@ const Canvas = () => {
     setInputText("");
   };
 
+  // handle canvas resize
+  const handleResize = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  };
+
   // useEffect to render all the stroke elements stored in the state
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -332,7 +341,14 @@ const Canvas = () => {
         );
       }
     });
-  }, [elements]);
+  }, [elements, selectedElement]);
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
@@ -350,7 +366,7 @@ const Canvas = () => {
         onMouseUp={handleMouseUp}
         // width={window.innerWidth}
         // height={window.innerHeight}
-        className="bg-white"
+        className="bg-white w-full h-screen"
         ref={canvasRef}
       />
 

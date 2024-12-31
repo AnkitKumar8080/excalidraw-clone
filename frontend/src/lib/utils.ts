@@ -4,7 +4,7 @@ import rough from "roughjs";
 import { Options } from "roughjs/bin/core";
 
 const widthMap = {
-  thin: 8,
+  thin: 10,
   bold: 15,
   extrabold: 20,
 };
@@ -257,7 +257,9 @@ const positionWithinElement = (
           5
         );
       });
-      return betweenPoints ? "inside" : null;
+
+      const onPoint = nearPoint(x, y, element.x1, element.y1, "drawing");
+      return betweenPoints || onPoint ? "inside" : null;
     }
     case "line": {
       return onLine(element.x1, element.y1, element.x2, element.y2, x, y);
