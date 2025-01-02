@@ -60,9 +60,22 @@ pipeline {
     }
   }
 
-  // post {
-  //   always {
-  //     echo "Docker container status: $(docker inspect --format='{{.State.Status}}' ${DOCKER_CONTAINER_NAME})"
-  //   }
-  // }
+  post {
+      always {
+          sh """
+          echo "Docker container status: \$(docker inspect --format='{{.State.Status}}' ${DOCKER_CONTAINER_NAME})"
+          """
+      }
+
+      success {
+        echo "pipeline completed successfully!"
+      }
+
+      failure {
+        echo "pipeline failed."
+      }
+  }
+
+
+
 }
