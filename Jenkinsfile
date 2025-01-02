@@ -90,7 +90,7 @@ pipeline {
     always {
       script {
         try {
-          echo "Docker container status: $(docker inspect --format='{{.State.Status}}' ${DOCKER_CONTAINER_NAME})"
+          echo "Docker container status: ${(docker inspect --format='{{.State.Status}}' ${DOCKER_CONTAINER_NAME})}"
         } catch (Exception e) {
           echo "Failed to retrieve Docker container status"
         }
