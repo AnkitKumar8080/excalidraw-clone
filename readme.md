@@ -1,6 +1,5 @@
 # Excalidraw Canvas Drawing Project
 
-![Screenshot 1](screenshots/Screenshot%20from%202024-12-31%2015-02-08.png)  
 ![Screenshot 2](screenshots/Screenshot%20from%202024-12-31%2015-18-05.png)  
 ![Screenshot 3](screenshots/Screenshot%20from%202024-12-31%2015-18-42.png)
 
