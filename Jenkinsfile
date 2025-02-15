@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { kubepod }
     environment {
         DOCKER_IMAGE = 'ankit80/excalidraw-app'
     }
