@@ -11,7 +11,7 @@ pipeline {
         } 
         stage('Build') {
             steps {
-                sh 'docker buildx -t $DOCKER_IMAGE:latest .'
+                sh 'docker buildx build -t $DOCKER_IMAGE:latest .'
             }
         }
         stage('Push to Docker Hub') {
