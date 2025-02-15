@@ -1,14 +1,14 @@
 pipeline {
-    agent { kubepod }
+    agent {kubepod}
     environment {
         DOCKER_IMAGE = 'ankit80/excalidraw-app'
     }
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
+        stage('checking the Source Control Manager') {
+          steps{
+            checkout scm
+          }
+        } 
         stage('Build') {
             steps {
                 sh 'docker build -t $DOCKER_IMAGE:latest ./frontend'
@@ -23,9 +23,7 @@ pipeline {
         }
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                  kubernetesDeploy(configs: "app-deployment.yaml", kubeconfigId: "mykubeconfig")
-                }
+                sh 'kubectl apply -f deployment.yaml'
             }
         }
     }
