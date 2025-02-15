@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: excalidraw-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: excalidraw
+  template:
+    metadata:
+      labels:
+        app: excalidraw
+    spec:
+      containers:
+        - name: excalidraw
+          image: ankit80/excalidraw-app:latest
+          ports:
+            - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: excalidraw-service
+spec:
+  selector:
+    app: excalidraw
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: LoadBalancer
