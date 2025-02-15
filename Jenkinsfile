@@ -1,19 +1,5 @@
 pipeline {
-    agent {
-        kubernetes {
-            yaml """
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-  - name: kubectl-container
-    image: bitnami/kubectl
-    command:
-    - cat
-    tty: true
-"""
-        }
-    }
+    agent any
     environment {
         DOCKER_IMAGE = 'ankit80/excalidraw-app'
     }
@@ -37,8 +23,8 @@ spec:
         }
         stage('Deploy to Kubernetes') {
             steps {
-                container('kubectl-container') {
-                    sh 'kubectl apply -f deployment.yaml'
+                script {
+                  kubernetesDeploy(configs: "app-deployment.yaml", kubeconfigId: "mykubeconfig")
                 }
             }
         }
