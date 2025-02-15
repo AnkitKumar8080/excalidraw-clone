@@ -4,14 +4,14 @@ pipeline {
         DOCKER_IMAGE = 'ankit80/excalidraw-app'
     }
     stages {
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/AnkitKumar8080/excalidraw-clone.git'
-            }
-        }
+        stage('checking the Source Control Manager') {
+          steps{
+            checkout scm
+          }
+        } 
         stage('Build') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE:latest .'
+                sh 'docker buildx -t $DOCKER_IMAGE:latest .'
             }
         }
         stage('Push to Docker Hub') {
