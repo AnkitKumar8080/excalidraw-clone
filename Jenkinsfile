@@ -83,12 +83,5 @@ pipeline {
         failure {
             echo "Pipeline failed! Check the logs for details."
         }
-        always {
-            // Clean up old Docker images to prevent disk space issues
-            sh """
-                docker image prune -f
-                docker images ${DOCKER_IMAGE} -q | xargs -r docker rmi || true
-            """
-        }
     }
 }
