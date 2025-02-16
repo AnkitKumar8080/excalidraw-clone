@@ -21,8 +21,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        cd frontend
-                        docker build -t ${DOCKER_IMAGE}:latest .
+                        docker build -t ${DOCKER_IMAGE}:latest ./frontend
                     """
                 }
             }
