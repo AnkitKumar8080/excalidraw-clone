@@ -62,11 +62,7 @@ pipeline {
                         // Using withKubeConfig for better credentials management
                         withKubeConfig([credentialsId: KUBE_CONFIG]) {
                             // Replace the image tag in the deployment file
-                            sh """
-                                sed -i 's|${DOCKER_IMAGE}:[^ ]*|${DOCKER_IMAGE}:${BUILD_NUMBER}|g' app-deployment.yaml
-                                kubectl apply -f app-deployment.yaml
-                                kubectl rollout status deployment/excalidraw-deployment
-                            """
+                            sh "kubectl apply -f app-deployment.yaml -n jenkins"
                         }
                     } catch (Exception e) {
                         error "Kubernetes deployment failed: ${e.getMessage()}"
