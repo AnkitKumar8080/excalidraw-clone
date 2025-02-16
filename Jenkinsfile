@@ -1,59 +1,94 @@
 pipeline {
-    agent {
-        kubernetes {
-            // Rather than inline YAML, in a multibranch Pipeline you could use: yamlFile 'jenkins-pod.yaml'
-            // Or, to avoid YAML:
-            // containerTemplate {
-            //     name 'shell'
-            //     image 'ubuntu'
-            //     command 'sleep'
-            //     args 'infinity'
-            // }
-            yaml '''
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-  - name: shell
-    image: ubuntu
-    command:
-    - sleep
-    args:
-    - infinity
-    securityContext:
-      # ubuntu runs as root by default, it is recommended or even mandatory in some environments (such as pod security admission "restricted") to run as a non-root user.
-      runAsUser: 1000
-'''
-            // Can also wrap individual steps:
-            // container('shell') {
-            //     sh 'hostname'
-            // }
-            defaultContainer 'shell'
-            retries 2
-        }
+    agent any
+    
+    environment {
+        DOCKER_IMAGE = 'ankit80/excalidraw-app'
+        BUILD_NUMBER = "latest"
+        DOCKER_CREDENTIALS = 'docker-hub-credentials'
+        KUBE_CONFIG = 'mykubeconfig'  // Add this credential in Jenkins
     }
+    
     stages {
-        stage('checking the Source Control Manager') {
-          steps{
-            checkout scm
-          }
-        } 
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE:latest ./frontend'
-            }
-        }
-        stage('Push to Docker Hub') {
-            steps {
-                withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
-                    sh 'docker push $DOCKER_IMAGE:latest'
+                script {
+                    try {
+                        checkout scm
+                    } catch (Exception e) {
+                        error "Failed to checkout code: ${e.getMessage()}"
+                    }
                 }
             }
         }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    try {
+                        // Using BUILD_NUMBER for versioning instead of just 'latest'
+                        sh """
+                            cd frontend
+                            docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} .
+                            docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest
+                        """
+                    } catch (Exception e) {
+                        error "Docker build failed: ${e.getMessage()}"
+                    }
+                }
+            }
+        }
+        
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    try {
+                        withDockerRegistry([credentialsId: DOCKER_CREDENTIALS, url: '']) {
+                            sh """
+                                docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                                docker push ${DOCKER_IMAGE}:latest
+                            """
+                        }
+                    } catch (Exception e) {
+                        error "Failed to push Docker image: ${e.getMessage()}"
+                    }
+                }
+            }
+        }
+        
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f app-deployment.yaml'
+                script {
+                    try {
+                        // Using withKubeConfig for better credentials management
+                        withKubeConfig([credentialsId: KUBE_CONFIG]) {
+                            // Replace the image tag in the deployment file
+                            sh """
+                                sed -i 's|${DOCKER_IMAGE}:[^ ]*|${DOCKER_IMAGE}:${BUILD_NUMBER}|g' app-deployment.yaml
+                                kubectl apply -f app-deployment.yaml
+                                kubectl rollout status deployment/excalidraw-deployment
+                            """
+                        }
+                    } catch (Exception e) {
+                        error "Kubernetes deployment failed: ${e.getMessage()}"
+                    }
+                }
             }
+        }
+    }
+    
+    post {
+        success {
+            echo "Pipeline executed successfully!"
+        }
+        failure {
+            echo "Pipeline failed! Check the logs for details."
+        }
+        always {
+            // Clean up old Docker images to prevent disk space issues
+            sh """
+                docker image prune -f
+                docker images ${DOCKER_IMAGE} -q | xargs -r docker rmi || true
+            """
         }
     }
 }
