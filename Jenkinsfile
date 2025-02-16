@@ -3,8 +3,7 @@ pipeline {
     
     environment {
     DOCKER_IMAGE = 'ankit80/excalidraw-app'
-    BUILD_NUMBER = "latest"
-    DOCKER_CREDENTIALS = credentials('docker-hub-credentials')
+    DOCKER_CREDENTIALS = 'docker-hub-credentials'
     GCP_CREDENTIALS = credentials('gcp-credentials')
     GCP_PROJECT_ID = "${env.GCP_PROJECT_ID}"
     GKE_CLUSTER_NAME = "${env.GKE_CLUSTER_NAME}"
@@ -23,8 +22,7 @@ pipeline {
                 script {
                     sh """
                         cd frontend
-                        docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} .
-                        docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest
+                        docker build -t ${DOCKER_IMAGE}:latest .
                     """
                 }
             }
@@ -34,7 +32,6 @@ pipeline {
             steps {
                 withDockerRegistry([credentialsId: DOCKER_CREDENTIALS, url: '']) {
                     sh """
-                        docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
                         docker push ${DOCKER_IMAGE}:latest
                     """
                 }
@@ -45,16 +42,19 @@ pipeline {
         stage('Configure GKE Access') {
             steps {
                 script {
-                    // Using Google Service Account credentials
                     withCredentials([[$class: 'GoogleServiceAccountCredential',
                                     credentialsId: GCP_CREDENTIALS,
                                     keyFileVariable: 'GOOGLE_APPLICATION_CREDENTIALS']]) {
-                        sh """
-                            gcloud auth activate-service-account --key-file=\$GOOGLE_APPLICATION_CREDENTIALS
-                            gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} \
-                                --zone ${GKE_ZONE} \
-                                --project ${GCP_PROJECT_ID}
-                        """
+                        try {
+                            sh """
+                                gcloud auth activate-service-account --key-file=\$GOOGLE_APPLICATION_CREDENTIALS
+                                gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} \
+                                    --zone ${GKE_ZONE} \
+                                    --project ${GCP_PROJECT_ID}
+                            """
+                        } catch (Exception e) {
+                            error "Failed to configure GKE access: ${e.getMessage()}"
+                        }
                     }
                 }
             }
@@ -64,9 +64,9 @@ pipeline {
             steps {
                 script {
                     sh """
-                        sed -i 's|${DOCKER_IMAGE}:[^ ]*|${DOCKER_IMAGE}:${BUILD_NUMBER}|g' app-deployment.yaml
+                        sed -i 's|${DOCKER_IMAGE}:[^ ]*|${DOCKER_IMAGE}:latest' app-deployment.yaml
                         kubectl apply -f app-deployment.yaml
-                        kubectl rollout status deployment/excalidraw-deployment
+                        kubectl rollout status deployment/excalidraw-app
                     """
                 }
             }
