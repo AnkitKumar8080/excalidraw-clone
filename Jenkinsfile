@@ -42,11 +42,10 @@ pipeline {
         stage('Configure GKE Access') {
             steps {
                 script {
-                    // Changed credential binding to use file credentials
-                    withCredentials([file(credentialsId: GCP_CREDENTIALS, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    // Using the correct Google credentials binding
+                    googleServiceAccount(credentialsId: GCP_CREDENTIALS) {
                         try {
                             sh """
-                                gcloud auth activate-service-account --key-file=\$GOOGLE_APPLICATION_CREDENTIALS
                                 gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} \
                                     --zone ${GKE_ZONE} \
                                     --project ${GCP_PROJECT_ID}
