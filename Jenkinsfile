@@ -1,7 +1,36 @@
 pipeline {
-    agent any
-    environment {
-        DOCKER_IMAGE = 'ankit80/excalidraw-app'
+    agent {
+        kubernetes {
+            // Rather than inline YAML, in a multibranch Pipeline you could use: yamlFile 'jenkins-pod.yaml'
+            // Or, to avoid YAML:
+            // containerTemplate {
+            //     name 'shell'
+            //     image 'ubuntu'
+            //     command 'sleep'
+            //     args 'infinity'
+            // }
+            yaml '''
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: shell
+    image: ubuntu
+    command:
+    - sleep
+    args:
+    - infinity
+    securityContext:
+      # ubuntu runs as root by default, it is recommended or even mandatory in some environments (such as pod security admission "restricted") to run as a non-root user.
+      runAsUser: 1000
+'''
+            // Can also wrap individual steps:
+            // container('shell') {
+            //     sh 'hostname'
+            // }
+            defaultContainer 'shell'
+            retries 2
+        }
     }
     stages {
         stage('checking the Source Control Manager') {
@@ -20,15 +49,6 @@ pipeline {
                     sh 'docker push $DOCKER_IMAGE:latest'
                 }
             }
-        }
-        stage('install kubectl') {
-          steps {
-            sh '''
-              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-              chmod +x kubectl
-              mv kubectl /usr/local/bin/kubectl
-            '''
-          }
         }
         stage('Deploy to Kubernetes') {
             steps {
