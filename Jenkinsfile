@@ -38,35 +38,16 @@ pipeline {
             }
         }
 
-
-        stage('Configure GKE Access') {
-            steps {
-                script {
-                    // Using the correct Google credentials binding
-                    googleServiceAccount(credentialsId: GCP_CREDENTIALS) {
-                        try {
-                            sh """
-                                gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} \
-                                    --zone ${GKE_ZONE} \
-                                    --project ${GCP_PROJECT_ID}
-                            """
-                        } catch (Exception e) {
-                            error "Failed to configure GKE access: ${e.getMessage()}"
-                        }
-                    }
-                }
-            }
-        }
-
         stage('Deploy to GKE') {
-            steps {
-                script {
-                    sh """
-                        sed -i 's|${DOCKER_IMAGE}:[^ ]*|${DOCKER_IMAGE}:latest' app-deployment.yaml
-                        kubectl apply -f app-deployment.yaml
-                        kubectl rollout status deployment/excalidraw-app
-                    """
-                }
+            steps{
+                step([
+                $class: 'KubernetesEngineBuilder',
+                projectId: ${GCP_PROJECT_ID},
+                clusterName: ${GKE_CLUSTER_NAME},
+                location: ${GKE_ZONE},
+                manifestPattern: 'app-deployment.yaml',
+                credentialsId: ${GCP_CREDENTIALS},
+                verifyDeployments: true])
             }
         }
     }
