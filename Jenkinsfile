@@ -42,9 +42,8 @@ pipeline {
         stage('Configure GKE Access') {
             steps {
                 script {
-                    withCredentials([[$class: 'GoogleServiceAccountCredential',
-                                    credentialsId: GCP_CREDENTIALS,
-                                    keyFileVariable: 'GOOGLE_APPLICATION_CREDENTIALS']]) {
+                    // Changed credential binding to use file credentials
+                    withCredentials([file(credentialsId: GCP_CREDENTIALS, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                         try {
                             sh """
                                 gcloud auth activate-service-account --key-file=\$GOOGLE_APPLICATION_CREDENTIALS
